@@ -1,10 +1,10 @@
-import LoginFormComponent from '@/components/LoginForm/page';
+import { AuthFormComponent } from '@/components/AuthForm/page';
 import Image from 'next/image';
 
 export default function Home() {
     return (
-        <main className="bg-stone-800 h-screen w-screen">
-            <LoginFormComponent />
+        <main>
+            <AuthFormComponent btnText="Login" isLogin={true} />
         </main>
     );
 }
