@@ -21,7 +21,9 @@ export const AuthFormComponent = (props: Props) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
             });
-            return res;
+            const data = res.json();
+
+            return data;
         } catch (error) {
             console.log(error);
         }
