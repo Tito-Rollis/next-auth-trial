@@ -13,7 +13,6 @@ export async function POST(req: Request) {
         const name = body.get('name');
         const email = body.get('email');
         const password = body.get('password');
-
         //Hashed the password
         const hashedPassword = await bcrypt.hash(password?.toString()!, 10);
 

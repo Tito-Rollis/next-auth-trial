@@ -8,20 +8,36 @@ type Props = {
     isLogin: boolean;
 };
 
+type Response = {
+    message: string;
+    data: {
+        name: FormDataEntryValue | null;
+        email: FormDataEntryValue | null;
+        password: string;
+    };
+};
+
 export const AuthFormComponent = (props: Props) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    // The input data must be appended on FormData()
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
 
     const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             const res = await fetch('api/register', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password }),
+                body: formData,
             });
-            const data = res.json();
+            const data: Response = await res.json();
+
+            if (data.message === 'Email already exist') return alert('Email already exist');
 
             return data;
         } catch (error) {
