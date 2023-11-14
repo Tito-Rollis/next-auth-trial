@@ -1,5 +1,5 @@
 import { AuthFormComponent } from '@/components/AuthForm/page';
-import Image from 'next/image';
+import { SessionProviderComponent } from './SessionProvider';
 
 export default function Home() {
     return (

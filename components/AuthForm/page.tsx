@@ -1,7 +1,8 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 type Props = {
     btnText: string;
@@ -18,25 +19,35 @@ type Response = {
 };
 
 export const AuthFormComponent = (props: Props) => {
+    const { data: session, status } = useSession();
+
+    useEffect(() => {
+        console.log('session', session);
+    }, [session]);
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // The input data must be appended on FormData()
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('password', password);
-
     const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        try {
+        const registerHandler = async () => {
             const res = await fetch('api/register', {
                 method: 'POST',
                 body: formData,
             });
             const data: Response = await res.json();
+            return data;
+        };
+        // FormData only create when needed
+        // The input data must be appended on FormData()
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
 
+        e.preventDefault();
+        try {
+            const data = await registerHandler();
             if (data.message === 'Email already exist') return alert('Email already exist');
 
             return data;
