@@ -30,8 +30,8 @@ export const AuthFormComponent = (props: Props) => {
     const [password, setPassword] = useState('');
 
     const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
-        const registerHandler = async () => {
-            const res = await fetch('api/register', {
+        const postHandler = async () => {
+            const res = await fetch(`api/${!props.isLogin ? 'register' : 'login'}`, {
                 method: 'POST',
                 body: formData,
             });
@@ -41,13 +41,15 @@ export const AuthFormComponent = (props: Props) => {
         // FormData only create when needed
         // The input data must be appended on FormData()
         const formData = new FormData();
-        formData.append('name', name);
+        if (!props.isLogin) {
+            formData.append('name', name);
+        }
         formData.append('email', email);
         formData.append('password', password);
 
         e.preventDefault();
         try {
-            const data = await registerHandler();
+            const data = await postHandler();
             if (data.message === 'Email already exist') return alert('Email already exist');
 
             return data;
