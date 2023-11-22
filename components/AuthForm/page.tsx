@@ -1,8 +1,9 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
+
+import { signIn, useSession } from 'next-auth/react';
 
 type Props = {
     btnText: string;
@@ -20,10 +21,14 @@ type Response = {
 
 export const AuthFormComponent = (props: Props) => {
     const { data: session, status } = useSession();
+    const [url, setUrl] = useState('');
 
     useEffect(() => {
-        console.log('session', session);
-    }, [session]);
+        console.log('session', session, status);
+        if (process.env.NEXTAUTH_URL) {
+            setUrl(process?.env?.NEXTAUTH_URL);
+        }
+    }, [session, status]);
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -31,12 +36,28 @@ export const AuthFormComponent = (props: Props) => {
 
     const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
         const postHandler = async () => {
-            const res = await fetch(`api/${!props.isLogin ? 'register' : 'login'}`, {
-                method: 'POST',
-                body: formData,
-            });
-            const data: Response = await res.json();
-            return data;
+            e.preventDefault();
+            console.log(formData.getAll('email'));
+
+            // If on register mode, we post to register api
+            if (!props.btnText) {
+                const res = await fetch(`api/register`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data: Response = await res.json();
+
+                return data;
+            }
+
+            if (props.isLogin) {
+                await signIn('credentials', {
+                    email,
+                    password,
+                    callbackUrl: `${url}/dashboard`,
+                }).then((e) => console.log(e));
+            }
         };
         // FormData only create when needed
         // The input data must be appended on FormData()
@@ -47,10 +68,9 @@ export const AuthFormComponent = (props: Props) => {
         formData.append('email', email);
         formData.append('password', password);
 
-        e.preventDefault();
         try {
             const data = await postHandler();
-            if (data.message === 'Email already exist') return alert('Email already exist');
+            if (data?.message === 'Email already exist') return alert('Email already exist');
 
             return data;
         } catch (error) {

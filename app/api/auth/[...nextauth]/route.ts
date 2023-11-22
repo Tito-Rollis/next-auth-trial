@@ -1,5 +1,13 @@
+import { connectMongodb } from '@/lib/mongodb';
+import { User } from '@/models/user';
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { pages } from 'next/dist/build/templates/app-page';
+
+type Body = {
+    email?: string;
+    password?: string;
+};
 
 const handler = NextAuth({
     secret: process.env.NEXTAUTH_SECRET,
@@ -13,13 +21,15 @@ const handler = NextAuth({
             // You can pass any HTML attribute to the <input> tag through the object.
             // Leave it {} if you use custom
             credentials: {},
-            async authorize(credentials, req) {
-                // Add logic here to look up the user from the credentials supplied
-                const user = { id: '1', name: 'J Smith' };
+            async authorize(credentials) {
+                await connectMongodb();
+                const { email } = credentials as { email: string; password: string };
+                const UserEmail = await User.findOne({ email });
 
-                if (user) {
+                // Check is user exist
+                if (UserEmail) {
                     // Any object returned will be saved in `user` property of the JWT
-                    return user;
+                    return UserEmail;
                 } else {
                     // If you return null then an error will be displayed advising the user to check their details.
                     return null;
@@ -29,6 +39,9 @@ const handler = NextAuth({
             },
         }),
     ],
+    pages: {
+        signIn: '/login',
+    },
 });
 
 export { handler as GET, handler as POST };
