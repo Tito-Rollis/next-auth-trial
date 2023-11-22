@@ -29,7 +29,7 @@ export async function POST(req: Request) {
         }
 
         //insert the properties into the Database
-        await User.create({ name, email, password });
+        await User.create({ name, email, password: hashedPassword });
 
         // Return the response
         return NextResponse.json({ message: 'Success', data: { name, email, password: hashedPassword } });

@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 import { FormEvent, useEffect, useState } from 'react';
 
 import { signIn, useSession } from 'next-auth/react';
@@ -20,6 +22,8 @@ type Response = {
 };
 
 export const AuthFormComponent = (props: Props) => {
+    const route = useRouter();
+
     const { data: session, status } = useSession();
     const [url, setUrl] = useState('');
 
@@ -35,46 +39,34 @@ export const AuthFormComponent = (props: Props) => {
     const [password, setPassword] = useState('');
 
     const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
-        const postHandler = async () => {
-            e.preventDefault();
-            console.log(formData.getAll('email'));
+        e.preventDefault();
 
-            // If on register mode, we post to register api
-            if (!props.btnText) {
-                const res = await fetch(`api/register`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const data: Response = await res.json();
-
-                return data;
-            }
-
-            if (props.isLogin) {
-                await signIn('credentials', {
-                    email,
-                    password,
-                    callbackUrl: `${url}/dashboard`,
-                }).then((e) => console.log(e));
-            }
-        };
         // FormData only create when needed
         // The input data must be appended on FormData()
         const formData = new FormData();
-        if (!props.isLogin) {
-            formData.append('name', name);
-        }
+        formData.append('name', name);
         formData.append('email', email);
         formData.append('password', password);
 
-        try {
-            const data = await postHandler();
+        // If on register mode, we post to register api
+        if (!props.isLogin) {
+            const res = await fetch(`api/register`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data: Response = await res.json();
             if (data?.message === 'Email already exist') return alert('Email already exist');
 
-            return data;
-        } catch (error) {
-            console.log(error);
+            route.push('/login');
+        }
+
+        if (props.isLogin) {
+            await signIn('credentials', {
+                email,
+                password,
+                callbackUrl: `${url}/dashboard`,
+            }).then((e) => console.log(e));
         }
     };
 
